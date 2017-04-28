@@ -18,11 +18,11 @@ fname <- paste(dir,"/",docs[1], sep = "")
 text <- readLines(fname)
 data("stop_words")
 text_df <- data_frame(index = 1:length(text),text = text) 
-text_df$text <- gsub(pattern = '[^a-zA-Z0-9\\s]+',
-                     x = text_df$text,
-                     replacement = "",
-                     ignore.case = TRUE,
-                     perl = TRUE)
+# text_df$text <- gsub(pattern = '[^a-zA-Z0-9\\s]+',
+#                      x = text_df$text,
+#                      replacement = "",
+#                      ignore.case = TRUE,
+#                      perl = TRUE)
 
 total_words <- text_df %>%
   unnest_tokens(word, text) %>%
@@ -32,19 +32,13 @@ total_words <- text_df %>%
 
 word_counts <- text_df %>%
   unnest_tokens(word, text) %>%
-  anti_join(stop_words, by = "word") %>%
   count(word, sort = TRUE) %>%
   mutate(freq = n/total_words$total,
          cum_sum = cumsum(n),
          cum_percent = cumsum(n)/total_words$total)
 
-p <- ggplot(word_counts, aes(n/total_words$total)) +
-  geom_histogram()
+words <- word_counts$word[word_counts$cum_percent < .5]
 
-fifty_percent <- word_counts %>% filter(cum_percent < .5) %>% summarise(count = n())
-
-ninety_percent <- word_counts %>% filter(cum_percent < .9) %>% summarise(count = n())
-  
 text_bigrams <- text_df %>%
   unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
   separate(bigram, c("word1", "word2"), sep = " ") %>%
@@ -54,10 +48,13 @@ text_bigrams <- text_df %>%
   unite(bigram, word1, word2, sep = " ")
 
 text_trigrams <- text_df %>%
-  unnest_tokens(trigram, text, token = "ngrams", n = 3) 
+  unnest_tokens(trigram, text, token = "ngrams", n = 3)  %>%
+  separate(trigram, c("word1", "word2", "word3"), sep = " ") %>%
+  filter(word1 %in% words) %>%
+  filter(word2 %in% words) %>%
+  filter(word3 %in% words)
 
 dictionary <- text_trigrams %>%
-  separate(trigram, c("word1", "word2", "word3"), sep = " ") %>%
   count(word1, word2, word3, sort = TRUE) %>%
   mutate(freq = n/nrow(text_trigrams),
          cum_sum = cumsum(n/nrow(text_trigrams)))%>%
