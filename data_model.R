@@ -16,7 +16,6 @@ docs <- list.files(dir)
 fname <- paste(dir,"/",docs[1], sep = "")
 
 text <- readLines(fname)
-data("stop_words")
 text_df <- data_frame(index = 1:length(text),text = text) 
 # text_df$text <- gsub(pattern = '[^a-zA-Z0-9\\s]+',
 #                      x = text_df$text,
@@ -26,7 +25,6 @@ text_df <- data_frame(index = 1:length(text),text = text)
 
 total_words <- text_df %>%
   unnest_tokens(word, text) %>%
-  anti_join(stop_words, by = "word") %>%
   count(word, sort = TRUE) %>%
   summarise(total = sum(n))
 
@@ -39,14 +37,6 @@ word_counts <- text_df %>%
 
 words <- word_counts$word[word_counts$cum_percent < .5]
 
-text_bigrams <- text_df %>%
-  unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
-  separate(bigram, c("word1", "word2"), sep = " ") %>%
-  filter(!word1 %in% stop_words$word) %>%
-  filter(!word2 %in% stop_words$word) %>%
-  count(word1, word2, sort = TRUE) %>%
-  unite(bigram, word1, word2, sep = " ")
-
 text_trigrams <- text_df %>%
   unnest_tokens(trigram, text, token = "ngrams", n = 3)  %>%
   separate(trigram, c("word1", "word2", "word3"), sep = " ") %>%
@@ -58,5 +48,5 @@ dictionary <- text_trigrams %>%
   count(word1, word2, word3, sort = TRUE) %>%
   mutate(freq = n/nrow(text_trigrams),
          cum_sum = cumsum(n/nrow(text_trigrams)))%>%
-  filter(cum_sum < .5) %>%
+  #filter(cum_sum < .5) %>%
   arrange(desc(freq))
