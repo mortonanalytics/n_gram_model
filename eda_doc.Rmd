@@ -1,0 +1,105 @@
+---
+title: 'N-Gram Model: Exploratory Data Analysis'
+author: "Ryan Morton"
+date: "May 12, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(grid)
+library(gridExtra)
+library(gtable)
+
+dir <- "Z:/Ryan/Coursera/10_capstone_project/corpus/final/en_US"
+setwd(dir)
+```
+```{r data, cache=TRUE}
+data(stop_words)
+
+docs <- list.files(dir)
+docs <- docs[grep("txt", docs)]
+
+fname <- paste(dir,"/",docs[1:3], sep = "")
+text <- lapply(fname, readLines)
+
+text_df_blog <- data_frame(index = 1:length(text[[1]]),text = text[[1]]) #%>% sample_frac(.3, replace = FALSE)
+text_df_news <- data_frame(index = 1:length(text[[2]]),text = text[[2]]) #%>% sample_frac(.25, replace = FALSE)
+text_df_twitter <-data_frame(index = 1:length(text[[3]]),text = text[[3]]) #%>% sample_frac(.15, replace = FALSE)
+
+word_counts <- read.csv("unigram.csv", stringsAsFactors = FALSE)
+text_2_grams <- read.csv("bigram.csv", stringsAsFactors = FALSE)
+text_3_grams <- read.csv("trigram.csv", stringsAsFactors = FALSE)
+# text_4_grams <- read.csv("4_gram.csv", stringsAsFactors = FALSE)
+# text_5_grams <- read.csv("5_gram.csv", stringsAsFactors = FALSE)
+# text_6_grams <- read.csv("6_gram.csv", stringsAsFactors = FALSE)
+```
+
+## Text Counts
+
+The number of texts available by source are: blogs had `r nrow(text_df_blog)` entries; news had `r nrow(text_df_news)` entries; and Twitter had `r nrow(text_df_twitter)` entries.
+
+## Word Counts
+
+In the sample of 25% of the texts available, there were `r nrow(word_counts)` words accounting for a total count of `r sum(word_counts$n)` words in the whole sample.
+
+The distribution of word counts (constrained to counts of 20 or less) look as follows:
+
+```{r word_count}
+ggplot(word_counts[word_counts$n < 20,], aes(x = n)) +
+  geom_histogram(bins = 20)
+```
+
+## N-Grams
+
+```{r n_gram_counts}
+padding <- unit(5, "mm")
+uni.title <- textGrob("Unigrams", gp = gpar(fontsize = 10))
+uni <- tableGrob(word_counts %>%
+  group_by(n) %>%
+  summarise(count = n()) %>%
+  top_n(10, count) %>%
+  ungroup(), rows = NULL)
+
+table1 <- gtable_add_rows(
+  uni, heights = grobHeight(uni.title) + padding, pos = 0
+)
+
+table1 <- gtable_add_grob(
+table1, uni.title, 1,1,1,ncol(table1)
+)
+
+bi.title <- textGrob("Bigrams", gp = gpar(fontsize = 10))
+bi <- tableGrob(text_2_grams %>%
+                  group_by(n) %>%
+                  summarise(count = n())%>%
+                  top_n(10, count) %>%
+                  ungroup(), rows = NULL)
+table2 <- gtable_add_rows(
+  bi, heights = grobHeight(uni.title) + padding, pos = 0
+)
+
+table2 <- gtable_add_grob(
+table2, bi.title, 1,1,1,ncol(table2)
+)
+
+tri.title <- textGrob("Trigrams", gp = gpar(fontsize = 10))
+tri <- tableGrob(text_3_grams %>%
+                  group_by(n) %>%
+                  summarise(count = n())%>%
+                  top_n(10, count) %>%
+                  ungroup(), rows = NULL)
+table3 <- gtable_add_rows(
+  tri, heights = grobHeight(tri.title) + padding, pos = 0
+)
+
+table3 <- gtable_add_grob(
+table3, tri.title, 1,1,1,ncol(table2)
+)
+
+grid.arrange(table1, table2, table3, nrow = 1)
+```
