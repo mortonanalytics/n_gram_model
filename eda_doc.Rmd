@@ -56,6 +56,8 @@ ggplot(word_counts[word_counts$n < 20,], aes(x = n)) +
 
 ## N-Grams
 
+Another way to look at the data is to see how many n-grams exist in the texts. An n-gram is a combination of words where a unigram is 1, bigram is 2, trigram is 3, and so forth.  Seeing the high amount of single count n-grams, some trimming will need to be pursued.
+
 ```{r n_gram_counts}
 padding <- unit(5, "mm")
 uni.title <- textGrob("Unigrams", gp = gpar(fontsize = 10))
@@ -103,3 +105,5 @@ table3, tri.title, 1,1,1,ncol(table2)
 
 grid.arrange(table1, table2, table3, nrow = 1)
 ```
+
+##Next Steps
