@@ -3,6 +3,7 @@ library(data.table)
 words <- read.table("./data/words.txt", stringsAsFactors = FALSE)
 n_gram_df <- read.csv("./data/n_gram.csv", stringsAsFactors = FALSE)
 n_gram_dt <- data.table(n_gram_df, key = "key")
+test_6_grams <- read.csv("data/test_6_grams.csv", stringsAsFactors = FALSE)
 
 # n_gram_df_stop <- read.csv("./data/n_gram_stop.csv", stringsAsFactors = FALSE)
 # n_gram_dt_stop <- data.table(n_gram_df, key = "key")
