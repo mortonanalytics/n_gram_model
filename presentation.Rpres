@@ -1,0 +1,40 @@
+Predict the nextWord!
+========================================================
+author: Ryan Morton
+date: 06/20/2017
+autosize: true
+
+Introduction
+========================================================
+
+- Describe the Algorithm
+- Demostrate the App
+- Report Performance
+
+The Algorithm
+========================================================
+
+```{r, echo = FALSE}
+source("final_model.R")
+```
+- N-gram model using up to 5 word keys to predict the next word
+- Model holds `r prettyNum(nrow(n_gram_df), big.mark = ",")` rows in its dictionary
+- Model utilizes *data.table* package to increase speed of searching the dictionary
+- Stupid backoff attempts highest n-gram first and backoffs to the next lowest down to 2-grams
+
+
+Application Demo
+========================================================
+
+![](nextWord.jpg)
+
+- Simple interface makes for ease of use
+
+Performance of nextWord App
+========================================================
+
+- 20 seconds to load 1M+ dictionary
+- Returns results as you type
+- Test sample of `r prettyNum(nrow(test_6_grams), big.mark = ",")` Twitter 6-grams yielded `r  paste(format(sum(test_6_grams$result)/nrow(test_6_grams) * 100, digits=1),"%", sep = "")` correct predictions with the algorithm (your experience may differ)
+- Model is sensitive to training dictionary context
+- Give it a try!
